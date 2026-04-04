@@ -1,7 +1,7 @@
 const { MongoClient } = require("mongodb");
 const jwt = require("jsonwebtoken");
 
-const uri = "mongodb://127.0.0.1:27017"; // or your Atlas URI
+const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
 // ✅ REGISTER
@@ -12,7 +12,9 @@ async function registerUser(req, res) {
 
         const { name, email, password, role } = req.body;
 
-        const existingUser = await db.collection("users").findOne({ email: email.toLowerCase() });
+        const existingUser = await db.collection("users").findOne({
+            email: email.toLowerCase()
+        });
 
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
@@ -21,11 +23,13 @@ async function registerUser(req, res) {
         await db.collection("users").insertOne({
             name,
             email: email.toLowerCase(),
-            password, // plain text password
+            password, // ⚠️ plain text (consider hashing later)
             role: role || "user"
         });
 
-        res.json({ message: "User registered successfully ✅" });
+        res.status(201).json({
+            message: "User registered successfully ✅"
+        });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -38,19 +42,20 @@ async function loginUser(req, res) {
         await client.connect();
         const db = client.db("CareerMatcherDB");
 
-        const { email, password, role } = req.body;
+        const { email, password } = req.body;
 
-        const user = await db.collection("users").findOne({ email: email.toLowerCase() });
+        // allow login via email OR username
+        const user = await db.collection("users").findOne({
+            $or: [
+                { email: email.toLowerCase() },
+                { name: email }
+            ]
+        });
 
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
 
-        if (role && user.role !== role) {
-            return res.status(400).json({ message: `User is not a ${role}` });
-        }
-
-        // Compare plain password
         if (user.password !== password) {
             return res.status(400).json({ message: "Invalid password" });
         }
@@ -61,7 +66,7 @@ async function loginUser(req, res) {
             { expiresIn: "1h" }
         );
 
-        res.json({
+        res.status(200).json({
             message: "Login successful ✅",
             name: user.name,
             role: user.role,

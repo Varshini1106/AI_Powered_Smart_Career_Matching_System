@@ -1,41 +1,23 @@
-// routes/posts.js
 const express = require("express");
 const router = express.Router();
-const { MongoClient } = require("mongodb");
 
-const uri = "mongodb://127.0.0.1:27017";
-const client = new MongoClient(uri);
+const {
+  addPost,
+  getAllPosts,
+  getPostById,
+  updatePost
+} = require("../controllers/postController");
 
 // GET all posts
-router.get("/", async (req, res) => {
-  try {
-    await client.connect();
-    const db = client.db("CareerMatcherDB");
-    const posts = await db.collection("posts").find().toArray();
-    res.json(posts);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/", getAllPosts);
 
-// CREATE a post
-router.post("/", async (req, res) => {
-  try {
-    await client.connect();
-    const db = client.db("CareerMatcherDB");
+// GET single post
+router.get("/:id", getPostById);
 
-    const newPost = req.body;
+// CREATE post
+router.post("/", addPost);
 
-    const result = await db.collection("posts").insertOne(newPost);
-
-    res.json({
-      message: "Post created successfully ✅",
-      postId: result.insertedId
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// UPDATE post
+router.put("/:id", updatePost);
 
 module.exports = router;

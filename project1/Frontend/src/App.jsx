@@ -7,6 +7,9 @@ import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import PostJob from "./components/PostJobs";
+import ManageJobs from "./components/ManageJobs";
+import "./App.css";
 
 const App = () => {
   return (
@@ -16,6 +19,8 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/user" element={<UserDashboard />} />
+        <Route path="/post-job" element={<PostJob />} />
+        <Route path="/manage-jobs" element={<ManageJobs />} />
       </Routes>
     </Router>
   );

@@ -5,9 +5,12 @@ require("dotenv").config();
 
 const { MongoClient } = require("mongodb");
 
+
+
 // Import route files
 const authRoutes = require("./routes/authRoutes");
 const postsRoutes = require("./routes/posts");
+const jobRoutes = require("./routes/jobRoutes");
 const applicationsRoutes = require("./routes/applications");
 const adminRoutes = require("./routes/admin-profile"); // ✅ Admin route
 
@@ -17,9 +20,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postsRoutes);
+app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationsRoutes);
 app.use("/api/admin", adminRoutes); // ✅ Use admin route
 

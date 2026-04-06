@@ -7,14 +7,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/posts');
 const applicationRoutes = require('./routes/applications');
+const postRoutes = require("./routes/postRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use(express.json());
+
+
 
 // Start server
 const PORT = 5000;

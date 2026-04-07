@@ -25,9 +25,15 @@ const Home = () => {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.role === "admin") window.location.href = "/admin";
-        else window.location.href = "/user";
-      } else {
+
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  if (data.user.role === "admin") {
+    window.location.href = "/admin";
+  } else {
+    window.location.href = "/user";
+  }
+} else {
         setError(data.message || "Invalid credentials");
       }
     } catch (err) {

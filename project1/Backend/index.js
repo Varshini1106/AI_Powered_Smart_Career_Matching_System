@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 const postsRoutes = require("./routes/posts");
 const jobRoutes = require("./routes/jobRoutes");
 const applicationsRoutes = require("./routes/applications");
+const userRoutes = require("./routes/users");
 const adminRoutes = require("./routes/admin-profile"); // ✅ Admin route
 
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posts", postsRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationsRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes); // ✅ Use admin route
 
 // MongoDB connection

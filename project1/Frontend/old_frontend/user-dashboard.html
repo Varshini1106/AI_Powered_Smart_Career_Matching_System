@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | CareerMatcher AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --sidebar: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        nav {
+            width: 280px;
+            background: var(--sidebar);
+            color: white;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 50px; display: flex; align-items: center; gap: 12px; color: white; }
+        .logo i { color: var(--primary-light); }
+
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 8px; }
+        .nav-links a { 
+            color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 14px; 
+            padding: 14px 18px; border-radius: 12px; transition: 0.3s; font-weight: 500;
+        }
+        .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.1); color: white; }
+        .nav-links a.active { background: var(--primary); box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); }
+
+        /* Main Content */
+        main { flex-grow: 1; margin-left: 280px; padding: 50px 60px; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        header h1 { font-size: 1.8rem; font-weight: 700; }
+
+        .user-profile { 
+            display: flex; align-items: center; gap: 12px; background: white;
+            padding: 6px 16px; border-radius: 50px; box-shadow: var(--shadow);
+        }
+        .avatar { 
+            width: 36px; height: 36px; background: var(--primary); 
+            border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; color: white; font-weight: 700; 
+        }
+
+        /* Stats Grid - THE BOXES */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease;
+        }
+        .stat-box:hover { transform: translateY(-5px); }
+
+        .icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .blue-icon { background: #eff6ff; color: var(--accent-blue); }
+        .green-icon { background: #ecfdf5; color: var(--accent-green); }
+        .purple-icon { background: #f5f3ff; color: var(--accent-purple); }
+
+        .stat-info h3 { font-size: 1.8rem; font-weight: 800; color: var(--sidebar); }
+        .stat-info p { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+
+        /* Table Area */
+        .section-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .table-container { 
+            background: white; border-radius: 20px; 
+            overflow: hidden; box-shadow: var(--shadow); border: 1px solid #e2e8f0;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            background: #f8fafc; padding: 18px 24px; text-align: left; 
+            font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        td { padding: 20px 24px; border-top: 1px solid #f1f5f9; font-size: 0.95rem; font-weight: 500; }
+
+        /* Status Pills */
+        .status { 
+            padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; 
+            font-weight: 700; text-transform: uppercase;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-accepted { background: #dcfce7; color: #166534; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+
+        .logout-link { color: #f87171 !important; margin-top: auto; }
+        
+        @media (max-width: 900px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            nav { width: 80px; }
+            nav span { display: none; }
+            main { margin-left: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo"><i class="fas fa-bolt"></i> <span>CareerMatcher</span></div>
+        <ul class="nav-links">
+            <li><a href="#" class="active"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+            <li><a href="browse-jobs.html"><i class="fas fa-search"></i> <span>Browse Jobs</span></a></li>
+            <li><a href="my-applications.html"><i class="fas fa-paper-plane"></i> <span>Applied Jobs</span></a></li>
+            <li><a href="profile.html"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+            <li style="margin-top: auto;"><a onclick="logout()" class="logout-link"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header>
+            <div>
+                <h1 id="welcomeText">Welcome back!</h1>
+                <p style="color: var(--text-muted);">Monitor your job search progress in real-time.</p>
+            </div>
+            <div class="user-profile">
+                <div class="avatar" id="userInitial">U</div>
+                <span id="userName" style="font-weight: 600;">User Name</span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="icon-wrapper blue-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-info">
+                    <h3 id="statApplied">0</h3>
+                    <p>Total Applied</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-wrapper green-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="stat-info">
+                    <h3 id="statPosts">0</h3>
+                    <p>Active Posts</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-wrapper purple-icon"><i class="fas fa-user-check"></i></div>
+                <div class="stat-info">
+                    <h3>85%</h3>
+                    <p>Profile Score</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title"><i class="fas fa-list-check" style="color: var(--primary)"></i> Application Tracking</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job Position</th>
+                        <th>Applied On</th>
+                        <th>Current Status</th>
+                    </tr>
+                </thead>
+                <tbody id="myAppsTable">
+                    <tr>
+                        <td colspan="3" style="text-align:center; color: var(--text-muted); padding: 40px;">
+                            <i class="fas fa-spinner fa-spin"></i> Fetching your application history...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="user-dashboard.js"></script>
+    <script>
+        window.onload = async () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) { window.location.href = 'index.html'; return; }
+
+            document.getElementById('userName').innerText = user.name;
+            document.getElementById('welcomeText').innerText = `Welcome, ${user.name.split(' ')[0]}! 👋`;
+            document.getElementById('userInitial').innerText = user.name.charAt(0);
+            
+            // Logic to update stats (assuming these functions exist in your user-dashboard.js)
+            // You might need to update your user-dashboard.js to return counts
+            await loadMyApplications(); 
+            updateStatsCounts();
+        };
+
+        async function updateStatsCounts() {
+    try {
+        // Fetch real count from your new backend route
+        const response = await fetch('/api/posts/count'); 
+        const data = await response.json();
+        
+        // Update the "Active Posts" box with the real number (2)
+        const postsBox = document.getElementById('statPosts');
+        if (postsBox) {
+            postsBox.innerText = data.count || 0;
+        }
+
+        // Update the "Total Applied" box based on table rows
+        const appCount = document.querySelectorAll('#myAppsTable tr:not(.empty-row)').length;
+        const appliedBox = document.getElementById('statApplied');
+        if (appliedBox) {
+            appliedBox.innerText = appCount;
+        }
+    } catch (error) {
+        console.error("Error updating stats:", error);
+    }
+}
+    </script>
+</body>
+</html>

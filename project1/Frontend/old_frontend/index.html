@@ -1,135 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CareerMatcher Login</title>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-    }
-    .login-card {
-      background: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-      width: 350px;
-      text-align: center;
-      transition: 0.3s ease;
-    }
-    .login-card:hover { transform: translateY(-5px); }
-    .login-card h2 { margin-bottom: 20px; color: #333; }
-    .input-group { margin-bottom: 20px; text-align: left; }
-    .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
-    .input-group input, .input-group select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      outline: none;
-      transition: 0.3s;
-    }
-    .input-group input:focus, .input-group select:focus {
-      border-color: #764ba2;
-      box-shadow: 0 0 5px #764ba2;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #764ba2;
-      border: none;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover { background: #667eea; }
-    .footer { margin-top: 15px; font-size: 14px; color: #777; }
-    .footer a { color: #7024bc; text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | CareerMatcher AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 45px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-card:hover { transform: translateY(-5px); }
+
+        .login-card h2 { 
+            margin-bottom: 10px; 
+            color: var(--text-dark); 
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        .login-card p {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+
+        .input-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #475569;
+            font-size: 0.85rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            outline: none;
+            transition: 0.3s;
+            font-size: 0.95rem;
+            background: #f9fafb;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover { background: var(--primary-hover); transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+
+        .footer { margin-top: 25px; font-size: 0.9rem; color: #64748b; }
+        .footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* Icon styling */
+        .brand-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="login-card">
-    <h2>CareerMatcher Login</h2>
-    <form id="loginForm">
-      <div class="input-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
-      </div>
-      <div class="input-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
-      </div>
-      <div class="input-group">
-        <label for="role">Role</label>
-        <select id="role" required>
-          <option value="">Select role</option>
-          <option value="admin">Admin</option>
-          <option value="user">User</option>
-        </select>
-      </div>
-      <button type="submit">Login <i class="fas fa-sign-in-alt"></i></button>
-    </form>
-    <div class="footer">
-      Don't have an account? <a href="#">Sign Up</a>
+    <div class="login-card">
+        <div class="brand-icon"><i class="fas fa-rocket"></i></div>
+        <h2>Welcome Back</h2>
+        <p>Please enter your details to continue</p>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="name@company.com" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <div class="input-group">
+                <label for="role">Account Type</label>
+                <select id="role" required>
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="admin">Admin / Recruiter</option>
+                    <option value="user">Job Seeker</option>
+                </select>
+            </div>
+            <button type="submit" id="loginBtn">
+                Sign In <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="footer">
+            New here? <a href="signup.html">Create an account</a>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const form = document.getElementById('loginForm');
+    <script>
+        const form = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Feedback
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            loginBtn.style.opacity = '0.7';
+            loginBtn.disabled = true;
 
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const password = document.getElementById('password').value;
-      const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
 
-      if (!role) {
-        alert('Please select a role');
-        return;
-      }
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
 
-      try {
-        // Call backend login API
-        const response = await fetch('http://localhost:5000/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role })
+                const data = await response.json();
+
+                if (response.ok) {
+                    // --- STORAGE BRIDGE ---
+                    // This stores the session so user-dashboard.html can read it
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.userId || data.user?._id, // Support for different backend formats
+                        name: data.name || "User",
+                        email: email,
+                        role: role
+                    }));
+
+                    // Redirect logic
+                    if (role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        window.location.href = 'user-dashboard.html';
+                    }
+                } else {
+                    alert(`Access Denied: ${data.message}`);
+                    resetButton();
+                }
+            } catch (error) {
+                console.error("Backend Connection Error:", error);
+                alert('Connection Error: Is your Backend server running on Port 5000?');
+                resetButton();
+            }
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-          alert(`Login successful! Welcome ${data.name} (${role})`);
-          if (role === 'admin') {
-            window.location.href = 'admin-dashboard.html';
-          } else {
-            window.location.href = 'user-dashboard.html';
-          }
-        } else {
-          alert(`Login failed: ${data.message}`);
+        function resetButton() {
+            loginBtn.innerHTML = 'Sign In <i class="fas fa-arrow-right"></i>';
+            loginBtn.style.opacity = '1';
+            loginBtn.disabled = false;
         }
-      } catch (error) {
-        console.error(error);
-        alert('Something went wrong. Please try again.');
-      }
-    });
-  </script>
-
+    </script>
 </body>
 </html>

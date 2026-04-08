@@ -62,9 +62,11 @@ const MyApplications = () => {
       );
 
       if (res.ok) {
-        alert("Application Updated Successfully!");
+        alert("✅ Application Updated Successfully!");
         closeModal();
         fetchMyApplications();
+      } else {
+        alert("Failed to update application");
       }
     } catch (err) {
       console.error(err);
@@ -78,16 +80,30 @@ const MyApplications = () => {
     try {
       const res = await fetch(
         `http://localhost:5000/api/applications/delete/${id}`,
-        { method: "DELETE" }
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
       if (res.ok) {
-        alert("Application deleted successfully!");
+        alert((data && data.message) || "✅ Application deleted successfully!");
         fetchMyApplications();
+      } else {
+        alert((data && data.message) || "Failed to delete application");
       }
     } catch (err) {
-      console.error(err);
-      alert("Error deleting application");
+      console.error("Delete Error:", err);
+      alert("Error deleting application. Check console for details.");
     }
   };
 
@@ -99,6 +115,11 @@ const MyApplications = () => {
       default: return 'status-pending';
     }
   };
+
+  // Calculate stats
+  const totalApplications = applications.length;
+  const acceptedCount = applications.filter(a => a.status?.toLowerCase() === 'accepted').length;
+  const pendingCount = applications.filter(a => a.status?.toLowerCase() === 'pending' || !a.status).length;
 
   return (
     <div className="my-applications-page">
@@ -131,34 +152,32 @@ const MyApplications = () => {
           </div>
         ) : (
           <>
+            {/* Stats Cards */}
             <div className="applications-stats">
               <div className="stat-card-mini">
                 <span className="stat-icon">📊</span>
                 <div>
-                  <div className="stat-number">{applications.length}</div>
+                  <div className="stat-number">{totalApplications}</div>
                   <div className="stat-label">Total Applications</div>
                 </div>
               </div>
               <div className="stat-card-mini">
                 <span className="stat-icon">✅</span>
                 <div>
-                  <div className="stat-number">
-                    {applications.filter(a => a.status?.toLowerCase() === 'accepted').length}
-                  </div>
+                  <div className="stat-number">{acceptedCount}</div>
                   <div className="stat-label">Accepted</div>
                 </div>
               </div>
               <div className="stat-card-mini">
                 <span className="stat-icon">⏳</span>
                 <div>
-                  <div className="stat-number">
-                    {applications.filter(a => a.status?.toLowerCase() === 'pending').length}
-                  </div>
+                  <div className="stat-number">{pendingCount}</div>
                   <div className="stat-label">Pending</div>
                 </div>
               </div>
             </div>
 
+            {/* Applications Grid */}
             <div className="applications-grid">
               {applications.map((app) => (
                 <div className="application-card" key={app._id}>
@@ -192,6 +211,12 @@ const MyApplications = () => {
                         <span className="detail-value">{app.currentRole}</span>
                       </div>
                     )}
+                    {app.education && (
+                      <div className="detail-row">
+                        <span className="detail-label">Education:</span>
+                        <span className="detail-value">{app.education}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="card-actions">
@@ -209,12 +234,12 @@ const MyApplications = () => {
         )}
       </main>
 
-      {/* Modal */}
+      {/* Edit Modal */}
       {showModal && selectedApp && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Application</h2>
+              <h2>✏️ Edit Application</h2>
               <button className="close-modal" onClick={closeModal}>×</button>
             </div>
             <form onSubmit={updateApplication}>
@@ -230,7 +255,7 @@ const MyApplications = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Experience (years)</label>
+                  <label>Experience (Years)</label>
                   <input
                     name="experience"
                     value={selectedApp.experience || ""}

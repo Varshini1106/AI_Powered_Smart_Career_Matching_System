@@ -61,7 +61,7 @@ async function loginUser(req, res) {
         }
 
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id.toString(), role: user.role }, // convert ObjectId to string
             "secretkey",
             { expiresIn: "1h" }
         );

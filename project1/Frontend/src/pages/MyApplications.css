@@ -5,15 +5,36 @@
   display: flex;
   min-height: 100vh;
   background: #F8FAFC;
+  overflow: hidden;
 }
 
-/* Main Content */
+/* Main Content - SCROLLABLE */
 .applications-main {
   flex: 1;
   margin-left: 280px;
   padding: 40px 50px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background: #F8FAFC;
+}
+
+/* Custom scrollbar for main content */
+.applications-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.applications-main::-webkit-scrollbar-track {
+  background: #E2E8F0;
+  border-radius: 10px;
+}
+
+.applications-main::-webkit-scrollbar-thumb {
+  background: #4A90C4;
+  border-radius: 10px;
+}
+
+.applications-main::-webkit-scrollbar-thumb:hover {
+  background: #2C5F8A;
 }
 
 /* Page Header */
@@ -47,6 +68,7 @@
   background: white;
   border-radius: 20px;
   text-align: center;
+  margin-bottom: 30px;
 }
 
 .spinner {
@@ -75,6 +97,7 @@
   padding: 80px 40px;
   text-align: center;
   border: 1px solid #E2E8F0;
+  margin-bottom: 30px;
 }
 
 .empty-state-content {
@@ -166,6 +189,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 24px;
+  margin-bottom: 30px;
 }
 
 /* Application Card */
@@ -181,6 +205,7 @@
 .application-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
+  border-color: #4A90C4;
 }
 
 .card-header {
@@ -188,6 +213,7 @@
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .job-icon {
@@ -316,14 +342,15 @@
   transform: translateY(-2px);
 }
 
-/* Modal */
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -338,12 +365,28 @@
 
 .modal-container {
   background: white;
-  border-radius: 24px;
+  border-radius: 28px;
   width: 90%;
   max-width: 550px;
   max-height: 85vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* Custom scrollbar for modal */
+.modal-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-container::-webkit-scrollbar-track {
+  background: #E2E8F0;
+  border-radius: 10px;
+}
+
+.modal-container::-webkit-scrollbar-thumb {
+  background: #4A90C4;
+  border-radius: 10px;
 }
 
 @keyframes slideUp {
@@ -362,32 +405,43 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 28px;
-  border-bottom: 1px solid #E2E8F0;
+  background: linear-gradient(135deg, #0B1E33 0%, #1A3A5F 100%);
+  border-radius: 28px 28px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .modal-header h2 {
   font-size: 22px;
   font-weight: 700;
   font-family: 'Playfair Display', serif;
-  color: #0B1E33;
+  color: white;
+  margin: 0;
 }
 
 .close-modal {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 32px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 28px;
   cursor: pointer;
-  color: #6B7A8F;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s ease;
 }
 
 .close-modal:hover {
-  color: #EF4444;
-  transform: scale(1.1);
+  background: rgba(220, 38, 38, 0.8);
+  transform: scale(1.05);
 }
 
 .modal-body {
-  padding: 24px 28px;
+  padding: 28px;
 }
 
 .form-group {
@@ -429,8 +483,10 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding: 20px 28px;
+  padding: 20px 28px 28px;
   border-top: 1px solid #E2E8F0;
+  background: white;
+  border-radius: 0 0 28px 28px;
 }
 
 .cancel-btn, .save-btn {
@@ -466,7 +522,7 @@
   box-shadow: 0 4px 12px rgba(74, 144, 196, 0.3);
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .applications-main {
     margin-left: 80px;
@@ -475,6 +531,28 @@
   
   .applications-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .my-applications-page {
+    overflow: auto;
+  }
+  
+  .applications-main {
+    margin-left: 0;
+    padding: 20px;
+    height: auto;
+    overflow-y: visible;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .status-badge {
+    align-self: flex-start;
   }
 }
 
@@ -491,6 +569,10 @@
     grid-template-columns: 1fr;
   }
   
+  .applications-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .modal-container {
     width: 95%;
   }
@@ -501,5 +583,28 @@
   
   .cancel-btn, .save-btn {
     width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+  }
+  
+  .detail-label {
+    width: auto;
+    margin-bottom: 4px;
   }
 }

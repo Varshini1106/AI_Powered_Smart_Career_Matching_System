@@ -1,6 +1,6 @@
 // src/pages/Home.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 
 const Home = () => {
@@ -9,6 +9,7 @@ const Home = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,15 +26,17 @@ const Home = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Store user data
+localStorage.setItem("user", JSON.stringify({ name: data.name, role: data.role }));
+localStorage.setItem("token", data.token);
 
-  localStorage.setItem("user", JSON.stringify(data.user));
+// Extract userId from JWT
+const payload = JSON.parse(atob(data.token.split(".")[1]));
+localStorage.setItem("userId", payload.id);
 
-  if (data.user.role === "admin") {
-    window.location.href = "/admin";
-  } else {
-    window.location.href = "/user";
-  }
-} else {
+// Navigate based on role
+if (data.role === "admin") navigate("/admin");
+else navigate("/user");
         setError(data.message || "Invalid credentials");
       }
     } catch (err) {

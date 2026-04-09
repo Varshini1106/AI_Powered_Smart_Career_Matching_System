@@ -7,33 +7,37 @@ function PostJob() {
     company: "",
     skills: "",
     location: "",
-    type: "Full-time",
+    jobType: "Full-time",
     salary: "",
     description: ""
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setJob({ ...job, [e.target.name]: e.target.value });
-  };
-
   const handleSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
 
   try {
-    const response = await fetch("http://localhost:5000/api/posts", {
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://localhost:5000/api/posts/posts", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(job)
     });
 
     const data = await response.json();
+    console.log("Server Response:", data);
 
-    console.log(data);
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to post job");
+    }
+
     alert("Job posted successfully!");
 
     setJob({
@@ -47,11 +51,20 @@ function PostJob() {
     });
 
   } catch (error) {
-    console.error(error);
-    alert("Error posting job");
+
+    console.error("Error posting job:", error);
+    alert(error.message);
+
   }
 
   setIsSubmitting(false);
+};
+
+const handleChange = (e) => {
+  setJob({
+    ...job,
+    [e.target.name]: e.target.value
+  });
 };
 
   return (
@@ -63,8 +76,10 @@ function PostJob() {
 
       <div className="form-container">
         <h3 className="form-title">Job Details</h3>
-        <p className="form-subtitle">Fill in the information below to post a new position</p>
-        
+        <p className="form-subtitle">
+          Fill in the information below to post a new position
+        </p>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Job Title *</label>
@@ -95,7 +110,7 @@ function PostJob() {
             <input
               type="text"
               name="location"
-              placeholder="e.g., Remote, New York, San Francisco"
+              placeholder="e.g., Remote, New York"
               value={job.location}
               onChange={handleChange}
               required
@@ -131,7 +146,7 @@ function PostJob() {
             <input
               type="text"
               name="skills"
-              placeholder="e.g., React, Node.js, Python (comma separated)"
+              placeholder="e.g., React, Node.js, Python"
               value={job.skills}
               onChange={handleChange}
               required
@@ -142,37 +157,39 @@ function PostJob() {
             <label>Job Description *</label>
             <textarea
               name="description"
-              placeholder="Describe the role, responsibilities, requirements, and benefits..."
+              rows="6"
+              placeholder="Describe responsibilities and requirements..."
               value={job.description}
               onChange={handleChange}
-              rows="6"
               required
-            ></textarea>
+            />
           </div>
 
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={() => {
-              setJob({
-                title: "",
-                company: "",
-                skills: "",
-                location: "",
-                type: "Full-time",
-                salary: "",
-                description: ""
-              });
-            }}>
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={() =>
+                setJob({
+                  title: "",
+                  company: "",
+                  skills: "",
+                  location: "",
+                  type: "Full-time",
+                  salary: "",
+                  description: ""
+                })
+              }
+            >
               Clear Form
             </button>
-            <button type="submit" className="submit-btn" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <span className="spinner-small"></span>
-                  Posting...
-                </>
-              ) : (
-                "✨ Post Job Now"
-              )}
+
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Posting..." : "✨ Post Job Now"}
             </button>
           </div>
         </form>

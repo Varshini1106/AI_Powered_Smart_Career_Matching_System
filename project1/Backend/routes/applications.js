@@ -173,4 +173,51 @@ router.delete("/delete/:id", async (req, res) => {
     }
 });
 
+// -----------------------
+// Update application status (accept/decline)
+// -----------------------
+router.put("/applications/:id/status", async (req, res) => {
+  try {
+    const database = await getDB();
+    const appId = req.params.id;
+    const { status } = req.body; // expected "accepted" or "declined"
+
+    if (!["accepted", "declined"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const result = await database.collection("applications").updateOne(
+      { _id: new ObjectId(appId) },
+      { $set: { status } }
+    );
+
+    if (result.matchedCount === 0) return res.status(404).json({ message: "Application not found" });
+
+    res.status(200).json({ message: `Application ${status}` });
+  } catch (err) {
+    console.error("Update Application Status Error:", err);
+    res.status(500).json({ message: "Failed to update application status" });
+  }
+});
+
+// -----------------------
+// Get Applications for a Specific Job (Admin)
+// -----------------------
+router.get("/job/:jobId", async (req, res) => {
+  try {
+    const database = await getDB();
+    const jobId = req.params.jobId;
+
+    const applications = await database
+      .collection("applications")
+      .find({ jobId: new ObjectId(jobId) })
+      .toArray();
+
+    res.status(200).json(applications);
+  } catch (err) {
+    console.error("Fetch Job Applications Error:", err);
+    res.status(500).json({ message: "Failed to fetch applications" });
+  }
+});
+
 module.exports = router;

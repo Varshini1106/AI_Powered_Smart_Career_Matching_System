@@ -1,118 +1,112 @@
 const express = require("express");
 const { MongoClient, ObjectId } = require("mongodb");
+const verifyToken = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// MongoDB setup
-const uri = process.env.MONGO_URI; 
+// MongoDB
+const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 let db;
 
-// Helper: reuse DB connection
-async function getDb() {
-    if (!db) {
-        await client.connect();
-        db = client.db("CareerMatcherDB");
-    }
-    return db;
+async function getDB() {
+  if (!db) {
+    await client.connect();
+    db = client.db("CareerMatcherDB");
+    console.log("MongoDB Connected ✅");
+  }
+  return db;
 }
 
-// ===== ROUTES =====
-
-// 1. GET the total post count (for admin dashboard box)
-router.get("/count", async (req, res) => {
-    try {
-        const database = await getDb();
-        const count = await database.collection("posts").countDocuments();
-        res.json({ count });
-    } catch (err) {
-        console.error("Count Error:", err);
-        res.status(500).json({ error: "Failed to count posts" });
-    }
+// -----------------------
+// Get all posts
+// -----------------------
+router.get("/posts", async (req, res) => {
+  try {
+    const database = await getDB();
+    const jobs = await database.collection("posts").find().toArray();
+    res.status(200).json(jobs);
+  } catch (err) {
+    console.error("Fetch Jobs Error:", err);
+    res.status(500).json({ message: "Failed to fetch jobs" });
+  }
 });
 
-// 2. GET all posts (for users)
-router.get("/", async (req, res) => {
-    try {
-        const database = await getDb();
-        const posts = await database.collection("posts")
-            .find()
-            .sort({ createdAt: -1 })
-            .toArray();
-        res.json(posts);
-    } catch (err) {
-        console.error("Fetch Error:", err);
-        res.status(500).json({ error: "Failed to fetch jobs" });
-    }
+// -----------------------
+// Get single post by ID
+// -----------------------
+router.get("/posts/:id", async (req, res) => {
+  try {
+    const database = await getDB();
+    const jobId = req.params.id;
+    const job = await database.collection("posts").findOne({ _id: new ObjectId(jobId) });
+    if (!job) return res.status(404).json({ message: "Job not found" });
+    res.status(200).json(job);
+  } catch (err) {
+    console.error("Fetch Job Error:", err);
+    res.status(500).json({ message: "Failed to fetch job" });
+  }
 });
 
-// 3. GET single post by ID
-router.get("/:id", async (req, res) => {
-    try {
-        const database = await getDb();
-        const post = await database.collection("posts").findOne({ _id: new ObjectId(req.params.id) });
-        if (!post) return res.status(404).json({ error: "Post not found" });
-        res.json(post);
-    } catch (err) {
-        console.error("Get Post Error:", err);
-        res.status(500).json({ error: "Failed to fetch post" });
-    }
+// -----------------------
+// Create job post
+// -----------------------
+router.post("/posts", verifyToken, async (req, res) => {
+  try {
+    const database = await getDB();
+    const job = { ...req.body, createdAt: new Date(), status: "Active" };
+    const result = await database.collection("posts").insertOne(job);
+    res.status(201).json({ message: "Job created", jobId: result.insertedId });
+  } catch (err) {
+    console.error("Create Job Error:", err);
+    res.status(500).json({ message: "Failed to create job" });
+  }
 });
 
-// 4. CREATE a new post (Admin)
-router.post("/", async (req, res) => {
-    try {
-        const database = await getDb();
-        const { title, company, description, location, salary, skillsRequired } = req.body;
+// -----------------------
+// Update job post
+// -----------------------
+router.put("/posts/:id", verifyToken, async (req, res) => {
+  try {
+    const database = await getDB();
+    const jobId = req.params.id;
+    const updateData = { ...req.body };
 
-        const newPost = {
-            title,
-            company,
-            description,
-            location,
-            salary,
-            skillsRequired: Array.isArray(skillsRequired) 
-                ? skillsRequired 
-                : (skillsRequired ? skillsRequired.split(',').map(s => s.trim()) : []),
-            createdAt: new Date()
-        };
+    // Prevent updating _id
+    delete updateData._id;
 
-        const result = await database.collection("posts").insertOne(newPost);
-        res.json({ message: "Job posted successfully ✅", postId: result.insertedId });
-    } catch (err) {
-        console.error("Post Error:", err);
-        res.status(500).json({ error: "Failed to create post" });
-    }
+    const result = await database
+      .collection("posts")
+      .updateOne({ _id: new ObjectId(jobId) }, { $set: updateData });
+
+    if (result.matchedCount === 0) return res.status(404).json({ message: "Job not found" });
+
+    res.status(200).json({ message: "Job updated successfully!" });
+  } catch (err) {
+    console.error("Update Job Error:", err);
+    res.status(500).json({ message: "Failed to update job" });
+  }
 });
 
-// 5. UPDATE post by ID (Admin)
-router.put("/:id", async (req, res) => {
-    try {
-        const database = await getDb();
-        const { title, company, description, location, salary, skillsRequired } = req.body;
+// -----------------------
+// Delete job post + related applications
+// -----------------------
+router.delete("/posts/:id", verifyToken, async (req, res) => {
+  try {
+    const database = await getDB();
+    const jobId = req.params.id;
 
-        const updatedPost = {
-            title,
-            company,
-            description,
-            location,
-            salary,
-            skillsRequired: Array.isArray(skillsRequired) 
-                ? skillsRequired 
-                : (skillsRequired ? skillsRequired.split(',').map(s => s.trim()) : []),
-        };
+    // Delete job
+    const result = await database.collection("posts").deleteOne({ _id: new ObjectId(jobId) });
+    if (result.deletedCount === 0) return res.status(404).json({ message: "Job not found" });
 
-        const result = await database.collection("posts").updateOne(
-            { _id: new ObjectId(req.params.id) },
-            { $set: updatedPost }
-        );
+    // Delete related applications
+    await database.collection("applications").deleteMany({ jobId: new ObjectId(jobId) });
 
-        if (result.matchedCount === 0) return res.status(404).json({ error: "Post not found" });
-
-        res.json({ message: "Post updated successfully ✅" });
-    } catch (err) {
-        console.error("Update Error:", err);
-        res.status(500).json({ error: "Failed to update post" });
-    }
+    res.status(200).json({ message: "Job and related applications deleted successfully!" });
+  } catch (err) {
+    console.error("Delete Job Error:", err);
+    res.status(500).json({ message: "Failed to delete job" });
+  }
 });
 
 module.exports = router;

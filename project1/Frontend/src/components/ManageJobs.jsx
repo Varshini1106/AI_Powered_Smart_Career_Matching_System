@@ -1,35 +1,64 @@
 // src/components/ManageJobs.jsx
 import React, { useState, useEffect } from "react";
+import "./ManageJobs.css";
 
 function ManageJobs({ setSection }) {
+
   const [searchTerm, setSearchTerm] = useState("");
   const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
 
-  // Fetch jobs once when component mounts
+  const [showApplications, setShowApplications] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [editJob, setEditJob] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+
+
+  // ================= FETCH JOBS =================
+
+  const fetchJobs = async () => {
+
+    setLoading(true);
+
+    try {
+
+      const res = await fetch("http://localhost:5000/api/posts/posts");
+      const data = await res.json();
+
+      const formattedJobs = data.map(job => ({
+        id: job._id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        type: job.jobType || job.type || "Full-time",
+        skills: Array.isArray(job.skills)
+          ? job.skills
+          : job.skills
+          ? job.skills.split(",")
+          : [],
+        status: job.status || "Active",
+        applications: job.applicationsCount || 0
+      }));
+
+      setJobs(formattedJobs);
+
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetch("http://localhost:5000/api/posts")
-      .then(res => res.json())
-      .then(data => {
-        console.log("Jobs from API:", data);
-        const formattedJobs = data.map(job => ({
-          id: job._id,
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          type: job.jobType,
-          skills: job.skills
-            ? Array.isArray(job.skills)
-            ? job.skills
-            : job.skills.split(',')
-            : [],
-          applications: job.applications || 0,
-          status: job.status || "Active",
-          postedDate: new Date(job.createdAt).toLocaleDateString()
-        }));
-        setJobs(formattedJobs);
-      })
-      .catch(err => console.error("Error fetching jobs:", err));
+    fetchJobs();
   }, []);
+
+
+  // ================= SEARCH =================
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,95 +66,184 @@ function ManageJobs({ setSection }) {
     job.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Delete job from backend and update UI
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this job?")) {
-      try {
-        await fetch(`http://localhost:5000/api/posts/${id}`, { method: "DELETE" });
-        setJobs(jobs.filter(job => job.id !== id));
-      } catch (err) {
-        console.error("Error deleting job:", err);
+
+  // ================= DELETE JOB =================
+
+  const handleDelete = async (jobId) => {
+
+  try {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login again");
+      return;
+    }
+
+    const response = await fetch(
+      `http://localhost:5000/api/posts/posts/${jobId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
       }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Delete failed");
+    }
+
+    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+
+    alert("Job deleted successfully");
+
+  } catch (error) {
+
+    console.error("Delete error:", error);
+
+    alert(error.message);
+
+  }
+};
+
+
+  // ================= EDIT JOB =================
+
+  const handleEdit = (id) => {
+
+    const job = jobs.find(j => j.id === id);
+
+    setEditJob({
+      ...job,
+      skills: job.skills || []
+    });
+
+    setShowEditModal(true);
+  };
+
+
+  const handleSaveEdit = async () => {
+
+    try {
+
+      await fetch(`http://localhost:5000/api/posts/posts/${editJob.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editJob)
+      });
+
+      setShowEditModal(false);
+      fetchJobs();
+
+    } catch (err) {
+
+      console.error("Update error:", err);
+
     }
   };
 
-  const handleEdit = (id) => {
-    alert(`Edit job with ID: ${id}\nThis will open edit form in production.`);
+
+  // ================= VIEW APPLICATIONS =================
+
+  const handleViewApplications = async (jobId, jobTitle) => {
+
+    setSelectedJob({ id: jobId, title: jobTitle });
+    setShowApplications(true);
+
+    try {
+
+      const res = await fetch(`http://localhost:5000/api/applications/job/${jobId}`);
+      const data = await res.json();
+
+      setApplications(data);
+
+    } catch (err) {
+
+      console.error("Error fetching applications:", err);
+      setApplications([]);
+
+    }
   };
 
-  const handleViewApplications = (id) => {
-    alert(`View applications for job ID: ${id}\nThis will show applications list in production.`);
+
+  // ================= UPDATE STATUS =================
+
+  const handleUpdateStatus = async (appId, status) => {
+
+    setUpdatingStatus(appId);
+
+    try {
+
+      await fetch(`http://localhost:5000/api/applications/update/${appId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+
+      setApplications(
+        applications.map(app =>
+          app._id === appId ? { ...app, status } : app
+        )
+      );
+
+    } catch (err) {
+
+      console.error("Status update error:", err);
+
+    }
+
+    setUpdatingStatus(null);
   };
 
-  const hasNoJobs = jobs.length === 0;
+
+  const getStatusColor = (status) => {
+
+    switch (status?.toLowerCase()) {
+      case "accepted":
+        return "status-accepted";
+      case "declined":
+        return "status-rejected";
+      default:
+        return "status-pending";
+    }
+
+  };
+
 
   return (
-    <>
+
+    <div className="manage-jobs-container">
+
       <div className="page-header">
         <h1>📋 Manage Jobs</h1>
-        <p>View, edit, or delete your job postings</p>
+        <p>View, edit, and manage all your job postings</p>
       </div>
 
-      {!hasNoJobs && (
-        <div className="jobs-stats-summary">
-          <div className="summary-card">
-            <span className="summary-icon">📊</span>
-            <div>
-              <div className="summary-value">{jobs.length}</div>
-              <div className="summary-label">Total Jobs</div>
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <span className="summary-icon">✅</span>
-            <div>
-              <div className="summary-value">{jobs.filter(j => j.status === "Active").length}</div>
-              <div className="summary-label">Active Jobs</div>
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <span className="summary-icon">📝</span>
-            <div>
-              <div className="summary-value">{jobs.reduce((sum, job) => sum + job.applications, 0)}</div>
-              <div className="summary-label">Total Applications</div>
-            </div>
-          </div>
+      {/* SEARCH */}
+      <div className="search-section">
+        <div className="search-wrapper">
+          <span className="search-icon">🔍</span>
+          <input
+            className="search-input"
+            placeholder="Search by title, company, or location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-      )}
+      </div>
 
-      {!hasNoJobs && (
-        <div className="jobs-header">
-          <div className="search-wrapper">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              className="search-bar"
-              placeholder="Search by title, company, or location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <button className="refresh-btn" onClick={() => setSearchTerm("")}>🔄 Clear Search</button>
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading jobs...</p>
         </div>
-      )}
-
-      {hasNoJobs && (
-        <div className="empty-state">
-          <div className="empty-state-content">
-            <div className="empty-state-icon">📭</div>
-            <h3>No Jobs Posted Yet</h3>
-            <p>You haven't posted any jobs yet. Start by creating your first job posting!</p>
-            <button className="create-job-btn" onClick={() => setSection("postjob")}>
-              ✨ Post Your First Job
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!hasNoJobs && filteredJobs.length > 0 && (
-        <div className="jobs-table">
-          <table>
+      ) : (
+        <div className="jobs-table-wrapper">
+          <table className="jobs-table">
             <thead>
               <tr>
                 <th>Job Title & Company</th>
@@ -133,13 +251,12 @@ function ManageJobs({ setSection }) {
                 <th>Type</th>
                 <th>Skills</th>
                 <th>Applications</th>
-                <th>Status</th>
-                <th>Posted Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {filteredJobs.map((job) => (
+              {filteredJobs.map(job => (
                 <tr key={job.id}>
                   <td>
                     <div className="job-title-cell">
@@ -150,50 +267,191 @@ function ManageJobs({ setSection }) {
                   <td>{job.location}</td>
                   <td><span className="job-type">{job.type}</span></td>
                   <td>
-                    <div className="skills-preview">
-                      {job.skills.slice(0, 2).map((skill, i) => (
-                        <span key={i} className="skill-preview-tag">{skill.trim()}</span>
-                      ))}
+                    <div className="skills-preview-expanded">
+                      {job.skills.length > 0 ? (
+                        job.skills.map((skill, i) => (
+                          <span key={i} className="skill-tag">
+                            {skill.trim()}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="no-skills">No skills listed</span>
+                      )}
                     </div>
-                  </td>
+                   </td>
                   <td>
-                    <button className="applications-count" onClick={() => handleViewApplications(job.id)}>
-                      {job.applications} 📧
+                    <button
+                      className="applications-count"
+                      onClick={() => handleViewApplications(job.id, job.title)}
+                    >
+                      📧 {job.applications}
                     </button>
-                  </td>
+                   </td>
                   <td>
-                    <span className={`job-status ${job.status === "Active" ? "status-active" : "status-closed"}`}>
-                      {job.status}
-                    </span>
-                  </td>
-                  <td>{job.postedDate}</td>
-                  <td className="action-buttons">
-                    <button className="edit-btn" onClick={() => handleEdit(job.id)}>✏️ Edit</button>
-                    <button className="delete-btn" onClick={() => handleDelete(job.id)}>🗑️ Delete</button>
-                  </td>
-                </tr>
+                    <div className="action-buttons">
+                      <button className="edit-btn" onClick={() => handleEdit(job.id)}>✏️</button>
+                      <button className="delete-btn" onClick={() => handleDelete(job.id)}>🗑️</button>
+                    </div>
+                   </td>
+                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {!hasNoJobs && filteredJobs.length === 0 && (
-        <div className="no-results">
-          <div className="no-results-content">
-            <span className="no-results-icon">🔍</span>
-            <p>No jobs found matching "{searchTerm}"</p>
-            <button className="clear-search-btn" onClick={() => setSearchTerm("")}>Clear Search</button>
+      {/* ================= CLEAN APPLICATION MODAL ================= */}
+      {showApplications && (
+        <div className="modal-overlay" onClick={() => setShowApplications(false)}>
+          <div className="applications-modal" onClick={(e) => e.stopPropagation()}>
+            
+            <div className="modal-header">
+              <h2>📋 Applications for {selectedJob?.title}</h2>
+              <button className="modal-close" onClick={() => setShowApplications(false)}>×</button>
+            </div>
+
+            <div className="modal-body">
+              {applications.length === 0 ? (
+                <div className="no-applications">
+                  <span>📭</span>
+                  <p>No applications received for this job yet</p>
+                </div>
+              ) : (
+                <div className="applications-list">
+                  {applications.map(app => (
+                    <div key={app._id} className="application-card-modal">
+                      <div className="app-header">
+                        <div className="app-avatar">
+                          <span>{app.userName?.charAt(0) || "A"}</span>
+                        </div>
+                        <div className="app-info">
+                          <h4>{app.userName}</h4>
+                          <p>Applied: {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : "Recently"}</p>
+                        </div>
+                        <span className={`status-badge ${getStatusColor(app.status)}`}>
+                          {app.status || "Pending"}
+                        </span>
+                      </div>
+
+                      <div className="app-details">
+                        <div className="detail-row">
+                          <span className="detail-label">💼 Experience:</span>
+                          <span className="detail-value">{app.experience || "Not specified"} years</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">🎯 Current Role:</span>
+                          <span className="detail-value">{app.currentRole || "Not specified"}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">🎓 Education:</span>
+                          <span className="detail-value">{app.education || "Not specified"}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">⚡ Skills:</span>
+                          <span className="detail-value">
+                            {Array.isArray(app.skills) 
+                              ? app.skills.join(", ") 
+                              : app.skills || "Not specified"}
+                          </span>
+                        </div>
+                        <div className="detail-row full-width">
+                          <span className="detail-label">💬 Statement:</span>
+                          <span className="detail-value reason-text">{app.reason || "No reason provided"}</span>
+                        </div>
+                      </div>
+
+                      {app.status === "pending" && (
+                        <div className="app-actions">
+                          <button 
+                            className="accept-btn"
+                            onClick={() => handleUpdateStatus(app._id, "accepted")}
+                            disabled={updatingStatus === app._id}
+                          >
+                            {updatingStatus === app._id ? "Processing..." : "✓ Accept"}
+                          </button>
+                          <button 
+                            className="decline-btn"
+                            onClick={() => handleUpdateStatus(app._id, "declined")}
+                            disabled={updatingStatus === app._id}
+                          >
+                            {updatingStatus === app._id ? "Processing..." : "✗ Decline"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="close-modal-btn" onClick={() => setShowApplications(false)}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {!hasNoJobs && filteredJobs.length > 0 && (
-        <div className="jobs-footer">
-          <p>Showing {filteredJobs.length} of {jobs.length} jobs</p>
+      {/* ================= EDIT MODAL ================= */}
+      {showEditModal && editJob && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+
+            <div className="modal-header">
+              <h2>✏️ Edit Job</h2>
+              <button className="modal-close" onClick={() => setShowEditModal(false)}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Job Title</label>
+                <input
+                  type="text"
+                  value={editJob.title}
+                  onChange={(e) => setEditJob({ ...editJob, title: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Company</label>
+                <input
+                  type="text"
+                  value={editJob.company}
+                  onChange={(e) => setEditJob({ ...editJob, company: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Location</label>
+                <input
+                  type="text"
+                  value={editJob.location}
+                  onChange={(e) => setEditJob({ ...editJob, location: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Skills (comma separated)</label>
+                <input
+                  type="text"
+                  value={editJob.skills.join(", ")}
+                  onChange={(e) => setEditJob({
+                    ...editJob,
+                    skills: e.target.value.split(",").map(s => s.trim())
+                  })}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button onClick={() => setShowEditModal(false)}>Cancel</button>
+              <button onClick={handleSaveEdit}>Save Changes</button>
+            </div>
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

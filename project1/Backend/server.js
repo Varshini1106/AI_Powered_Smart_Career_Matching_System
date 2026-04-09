@@ -11,13 +11,15 @@ app.use(express.json()); // Essential for reading the 'body' of your POST/PUT re
 const authRoutes = require('./routes/authRoutes');             // For Login, Signup, and Profile Updates
 const applicationRoutes = require('./routes/applications');    // For Submitting and Viewing Job Applications
 const postRoutes = require("./routes/postRoutes");             // For Browsing and Creating Job Posts
-const jobRoutes = require("./routes/jobRoutes");               // For Job Management (Admin)
+const jobRoutes = require("./routes/jobRoutes");    
+const adminStatsRoutes = require("./routes/adminStats");           // For Job Management (Admin)
 
 // Endpoint Definitions
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/admin", adminStatsRoutes);
 
 // Start server
 // Uses the PORT from .env if available, otherwise defaults to 5000

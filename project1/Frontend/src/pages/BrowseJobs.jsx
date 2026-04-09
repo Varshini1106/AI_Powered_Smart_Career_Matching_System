@@ -31,7 +31,7 @@ function BrowseJobs() {
 
   async function loadJobs() {
     try {
-      const response = await fetch("http://localhost:5000/api/posts");
+      const response = await fetch("http://localhost:5000/api/posts/posts");
       const data = await response.json();
       setJobs(data);
     } catch (err) {
@@ -69,6 +69,7 @@ function BrowseJobs() {
       reason: "",
       resume: null
     });
+    
   };
 
   const closeModal = () => {
@@ -227,16 +228,22 @@ function BrowseJobs() {
 
                   <p className="job-description">{job.description || "No description available"}</p>
 
+                  {/* Replace your current skills-section with this block */}
                   {job.skills && (
                     <div className="skills-section">
                       <span className="skills-label">Required Skills:</span>
                       <div className="skills-list">
-                        {job.skills.split(',').map((skill, idx) => (
-                          <span key={idx} className="skill-badge">{skill.trim()}</span>
+                        {(Array.isArray(job.skills) 
+                          ? job.skills 
+                          : job.skills.split(',')
+                        ).map((skill, idx) => (
+                          <span key={idx} className="skill-badge">
+                            {typeof skill === 'string' ? skill.trim() : skill}
+                          </span>
                         ))}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                        </div>
+                      )}
                 </div>
 
                 <div className="job-card-footer">

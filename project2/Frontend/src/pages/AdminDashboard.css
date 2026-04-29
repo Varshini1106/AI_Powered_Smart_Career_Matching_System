@@ -1,0 +1,347 @@
+/* src/pages/AdminDashboard.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+
+/* Page Header */
+.page-header {
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(135deg, #0B1E33 0%, #2C5F8A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: #6B7A8F;
+  font-size: 14px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid #E2E8F0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
+  border-color: #4A90C4;
+}
+
+.stat-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon-wrapper.blue {
+  background: linear-gradient(135deg, #E6F0FA 0%, #F0F7FF 100%);
+}
+
+.stat-icon-wrapper.green {
+  background: linear-gradient(135deg, #DCFCE7 0%, #F0FDF4 100%);
+}
+
+.stat-icon-wrapper.purple {
+  background: linear-gradient(135deg, #F3E8FF 0%, #FAF5FF 100%);
+}
+
+.stat-icon-wrapper.orange {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%);
+}
+
+.stat-icon {
+  font-size: 28px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'Playfair Display', serif;
+  color: #0B1E33;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: #6B7A8F;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* AI Insights Card */
+.ai-insights-card {
+  background: white;
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 30px;
+  border: 1px solid #E2E8F0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ai-insights-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #E6F0FA;
+}
+
+.ai-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #0B1E33 0%, #2C5F8A 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.ai-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  color: #0B1E33;
+  margin-bottom: 4px;
+}
+
+.ai-header p {
+  font-size: 13px;
+  color: #6B7A8F;
+  margin: 0;
+}
+
+.ai-top-skills {
+  margin-bottom: 24px;
+}
+
+.ai-top-skills h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A3A5F;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skills-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ai-skill-chip {
+  background: linear-gradient(135deg, #E6F0FA 0%, #F0F7FF 100%);
+  padding: 6px 16px;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A3A5F;
+  transition: all 0.3s ease;
+}
+
+.ai-skill-chip:hover {
+  background: linear-gradient(135deg, #4A90C4 0%, #2C5F8A 100%);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.no-data {
+  color: #6B7A8F;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.ai-suggestion {
+  background: #F0F7FF;
+  border-radius: 16px;
+  padding: 20px;
+  border-left: 4px solid #4A90C4;
+}
+
+.ai-suggestion h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A3A5F;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-suggestion p {
+  color: #1A3A5F;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Recent Activity Section */
+.recent-section {
+  background: white;
+  border-radius: 24px;
+  padding: 28px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.recent-section h3 {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  color: #0B1E33;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-icon {
+  font-size: 22px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F1F5F9;
+  transition: all 0.3s ease;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item:hover {
+  background: #F8FAFC;
+  padding-left: 10px;
+  border-radius: 12px;
+}
+
+.activity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+
+.activity-dot.blue-dot {
+  background: #4A90C4;
+  box-shadow: 0 0 0 3px rgba(74, 144, 196, 0.2);
+}
+
+.activity-dot.green-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.activity-dot.purple-dot {
+  background: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: #1A3A5F;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: #6B7A8F;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  
+  .stat-card {
+    padding: 20px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 28px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ai-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .skills-chips {
+    justify-content: center;
+  }
+  
+  .ai-suggestion {
+    text-align: center;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .activity-dot {
+    margin-left: 0;
+  }
+}

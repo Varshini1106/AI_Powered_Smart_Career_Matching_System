@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | CareerMatcher AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* Sidebar Navigation */
+        nav {
+            width: 260px;
+            background: #0f172a;
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: var(--primary); }
+
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 10px; }
+        .nav-links a { 
+            color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 12px; 
+            padding: 12px; border-radius: 10px; transition: 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active { background: #1e293b; color: white; }
+
+        /* Main Content */
+        main { flex-grow: 1; margin-left: 260px; padding: 40px; }
+        
+        .profile-container {
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        h1 { margin-bottom: 10px; font-weight: 700; }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            outline: none;
+            transition: 0.3s;
+            background: #f9fafb;
+            font-size: 1rem;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .save-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .save-btn:hover { background: #4f46e5; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo"><i class="fas fa-bolt"></i> CareerMatcher</div>
+        <ul class="nav-links">
+            <li><a href="user-dashboard.html"><i class="fas fa-grid-2"></i> Dashboard</a></li>
+            
+            <li><a href="browse-jobs.html"><i class="fas fa-briefcase"></i> Browse Jobs</a></li>
+            <li><a href="my-applications.html" class="active"><i class="fas fa-briefcase"></i> Applied Jobs</a></li>
+            <li><a href="profile.html" class="active"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a onclick="logout()" style="color:#f87171; cursor:pointer; margin-top:20px; display:block;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h1>My Profile</h1>
+        <p class="subtitle">Update your professional details to get better job matches.</p>
+
+        <div class="profile-container">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="profName"  style="background: #f1f5f9; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="profEmail"  style="background: #f1f5f9; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Technical Skills (Comma separated)</label>
+                <input type="text" id="profSkills" placeholder="e.g. JavaScript, MongoDB, Node.js, UI/UX">
+            </div>
+
+            <div class="form-group">
+                <label>Professional Bio</label>
+                <textarea id="profBio" rows="5" placeholder="Tell us about your experience and career goals..."></textarea>
+            </div>
+
+            <button class="save-btn" onclick="saveProfile()">
+                <i class="fas fa-save"></i> Save Profile Details
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // 1. Get user data from LocalStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+
+        if (!user || !token) {
+            window.location.href = 'index.html';
+        }
+
+        // 2. Fetch profile from Backend when page loads
+        window.onload = async () => {
+            // Set basic info immediately from LocalStorage
+            document.getElementById('profName').value = user.name;
+            document.getElementById('profEmail').value = user.email;
+
+            try {
+                // Fetch extra details (skills/bio) from MongoDB
+                const response = await fetch(`http://localhost:5000/api/auth/profile/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if(data.skills) document.getElementById('profSkills').value = data.skills.join(", ");
+                    if(data.bio) document.getElementById('profBio').value = data.bio;
+                }
+            } catch (err) {
+                console.error("Profile Fetch Error:", err);
+            }
+        };
+
+        // 3. Save Updated Profile
+        async function saveProfile() {
+            const skills = document.getElementById('profSkills').value.split(',').map(s => s.trim());
+            const bio = document.getElementById('profBio').value;
+
+            try {
+                const res = await fetch(`http://localhost:5000/api/auth/profile/update`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ userId: user.id, skills, bio })
+                });
+
+                if (res.ok) {
+                    alert("✨ Profile updated successfully!");
+                } else {
+                    alert("Failed to update profile.");
+                }
+            } catch (err) {
+                console.error("Save Error:", err);
+                alert("Server error. Check your backend console.");
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

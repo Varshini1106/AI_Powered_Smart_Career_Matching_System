@@ -1,0 +1,282 @@
+const express = require("express");
+const { MongoClient, ObjectId } = require("mongodb");
+const verifyToken = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadResume");
+//const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const router = express.Router();
+
+// MongoDB
+const uri = process.env.MONGO_URI;
+const client = new MongoClient(uri);
+let db;
+
+async function getDB() {
+    if (!db) {
+        await client.connect();
+        db = client.db("CareerMatcherDB");
+        console.log("MongoDB Connected ✅");
+    }
+    return db;
+}
+
+// -----------------------
+// Multer setup for resume uploads
+// -----------------------
+/*const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "uploads/");
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, file.fieldname + "-" + Date.now() + ext);
+    }
+});
+const upload = multer({ storage });*/
+
+// -----------------------
+// Apply to a Job (with resume upload)
+// -----------------------
+router.post("/apply", verifyToken, upload.single("resume"), async (req, res) => {
+    try {
+        const database = await getDB();
+        const userId = req.user.id;
+
+        const { postId, userName, experience, currentRole, education, skills, reason } = req.body;
+        const resumeFile = req.file ? req.file.filename : null;
+
+        if (!postId) return res.status(400).json({ message: "Job ID is required" });
+
+        const exists = await database.collection("applications").findOne({
+            jobId: new ObjectId(postId),
+            userId: new ObjectId(userId)
+        });
+
+        if (exists) return res.status(400).json({ message: "Already applied for this job" });
+
+        const application = {
+            jobId: new ObjectId(postId),
+            userId: new ObjectId(userId),
+            userName,
+            experience,
+            currentRole,
+            education,
+            skills,
+            reason,
+            resume: resumeFile,
+            status: "pending",
+            appliedAt: new Date()
+        };
+
+        const result = await database.collection("applications").insertOne(application);
+        res.status(201).json({ message: "Applied successfully ✅", applicationId: result.insertedId });
+    } catch (err) {
+        console.error("Apply Error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// -----------------------
+// Get My Applications via JWT (no userId param) - used by UserDashboard
+// -----------------------
+router.get("/my-applications", verifyToken, async (req, res) => {
+    try {
+        const database = await getDB();
+        const userId = req.user.id;
+
+        const userApps = await database.collection("applications").aggregate([
+            { $match: { userId: new ObjectId(userId) } },
+            {
+                $lookup: {
+                    from: "posts",
+                    localField: "jobId",
+                    foreignField: "_id",
+                    as: "jobDetails"
+                }
+            },
+            { $unwind: { path: "$jobDetails", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    status: 1,
+                    appliedAt: 1,
+                    userName: 1,
+                    experience: 1,
+                    currentRole: 1,
+                    education: 1,
+                    skills: 1,
+                    reason: 1,
+                    resume: 1,
+                    jobTitle: "$jobDetails.title",
+                    company: "$jobDetails.company",
+                    location: "$jobDetails.location"
+                }
+            }
+        ]).toArray();
+
+        res.status(200).json(userApps);
+    } catch (err) {
+        console.error("Fetch JWT User Apps Error:", err);
+        res.status(500).json({ message: "Could not retrieve applications." });
+    }
+});
+
+// -----------------------
+// Get My Applications by userId param - used by MyApplications page
+// -----------------------
+router.get("/my-applications/:userId", async (req, res) => {
+    try {
+        const database = await getDB();
+        const userId = req.params.userId;
+
+        const userApps = await database.collection("applications").aggregate([
+            { $match: { userId: new ObjectId(userId) } },
+            {
+                $lookup: {
+                    from: "posts",
+                    localField: "jobId",
+                    foreignField: "_id",
+                    as: "jobDetails"
+                }
+            },
+            { $unwind: { path: "$jobDetails", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    status: 1,
+                    appliedAt: 1,
+                    userName: 1,
+                    experience: 1,
+                    currentRole: 1,
+                    education: 1,
+                    skills: 1,
+                    reason: 1,
+                    resume: 1,
+                    jobTitle: "$jobDetails.title",
+                    company: "$jobDetails.company",
+                    location: "$jobDetails.location"
+                }
+            }
+        ]).toArray();
+
+        res.status(200).json(userApps);
+    } catch (err) {
+        console.error("Fetch User Apps Error:", err);
+        res.status(500).json({ message: "Could not retrieve applications." });
+    }
+});
+
+// -----------------------
+// Update Application
+// -----------------------
+router.put("/update/:id", async (req, res) => {
+    try {
+        const database = await getDB();
+        const appId = req.params.id;
+        const updateData = { ...req.body };
+
+        delete updateData._id;
+        delete updateData.userId;
+        delete updateData.jobId;
+        delete updateData.appliedAt;
+
+        const result = await database
+            .collection("applications")
+            .updateOne(
+                { _id: new ObjectId(appId) },
+                { $set: updateData }
+            );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        res.status(200).json({ message: "Application updated successfully!" });
+    } catch (err) {
+        console.error("Update Application Error:", err);
+        res.status(500).json({ message: "Failed to update application" });
+    }
+});
+
+// -----------------------
+// Delete Application
+// -----------------------
+router.delete("/delete/:id", async (req, res) => {
+    try {
+        const database = await getDB();
+        const appId = req.params.id;
+
+        const result = await database.collection("applications").deleteOne({ _id: new ObjectId(appId) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        res.status(200).json({ message: "Application deleted successfully!" });
+    } catch (err) {
+        console.error("Delete Application Error:", err);
+        res.status(500).json({ message: "Failed to delete application" });
+    }
+});
+
+// -----------------------
+// Update application status (accept/decline)
+// -----------------------
+router.put("/applications/:id/status", async (req, res) => {
+    try {
+        const database = await getDB();
+        const appId = req.params.id;
+        const { status } = req.body;
+
+        if (!["accepted", "declined"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const result = await database.collection("applications").updateOne(
+            { _id: new ObjectId(appId) },
+            { $set: { status } }
+        );
+
+        if (result.matchedCount === 0) return res.status(404).json({ message: "Application not found" });
+
+        res.status(200).json({ message: `Application ${status}` });
+    } catch (err) {
+        console.error("Update Application Status Error:", err);
+        res.status(500).json({ message: "Failed to update application status" });
+    }
+});
+
+// -----------------------
+// Get Applications for a Specific Job (Admin)
+// -----------------------
+router.get("/job/:jobId", async (req, res) => {
+    try {
+        const database = await getDB();
+        const jobId = req.params.jobId;
+
+        const applications = await database
+            .collection("applications")
+            .find({ jobId: new ObjectId(jobId) })
+            .toArray();
+
+        res.status(200).json(applications);
+    } catch (err) {
+        console.error("Fetch Job Applications Error:", err);
+        res.status(500).json({ message: "Failed to fetch applications" });
+    }
+});
+
+// -----------------------
+// Serve resume files
+// -----------------------
+router.get("/resume/:filename", (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, "../uploads/resumes", filename);
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Resume not found" });
+    }
+    res.sendFile(filePath);
+});
+
+module.exports = router;
